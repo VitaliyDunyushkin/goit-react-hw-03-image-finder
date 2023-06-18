@@ -14,16 +14,16 @@ export default class Searchbar extends Component {
 
   render() {
     return (
-      <header className={css.Searchbar}>
-        <form className={css.SearchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={css.SearchFormButton}>
-            <span className={css.SearchFormButtonLabel111}>
+      <header className={css.searchbar}>
+        <form className={css.searchForm} onSubmit={this.handleSubmit}>
+          <button type="submit" className={css.searchFormButton}>
+            <span className={css.searchFormButtonLabel111}>
               <AiOutlineSearch />
             </span>
           </button>
 
           <input
-            className={css.SearchFormInput}
+            className={css.searchFormInput}
             type="text"
             name="search"
             placeholder="Search images and photos"
