@@ -29,8 +29,6 @@ export class App extends Component {
 
   handleSearch = value => {
     this.setState({ searchText: value, page: 1, query: [] });
-
-    // console.log(event);
   };
 
   handleButton = () => {
@@ -44,8 +42,6 @@ export class App extends Component {
       isShowModal: true,
       photoForModal: { largeImageURL: urlForModal, title: title, id: id },
     });
-
-    // console.log(urlForModal, title);
   };
 
   closeModal = () => {
@@ -118,7 +114,12 @@ export class App extends Component {
     }
 
     if (status === STATUS.REJECTED) {
-      return <h1>{error}</h1>;
+      return (
+        <>
+          <Searchbar onSearch={this.handleSearch} />
+          <h1>{error}</h1>
+        </>
+      );
     }
   }
 }
