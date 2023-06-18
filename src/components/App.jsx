@@ -7,19 +7,28 @@ import Modal from './Modal';
 import { Loader } from './Loader/Loader';
 import { getPhotos } from 'api/getPhotos';
 
+const STATUS = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  RESOLVED: 'resolved',
+  REJECTED: 'rejected',
+};
+
 export class App extends Component {
   state = {
+    status: STATUS.IDLE,
     searchText: '',
     query: [],
     page: 1,
+    photosOnPage: 12,
     error: '',
     isShowModal: false,
-    photoForModal: { largeImageURL: '', title: '' },
-    isShowLoader: false,
+    isShowButton: false,
+    photoForModal: { largeImageURL: '', title: '', id: '' },
   };
 
   handleSearch = value => {
-    this.setState({ searchText: value, page: 1 });
+    this.setState({ searchText: value, page: 1, query: [] });
 
     // console.log(event);
   };
@@ -30,10 +39,10 @@ export class App extends Component {
     }));
   };
 
-  openModal = (urlForModal, title) => {
+  openModal = (urlForModal, title, id) => {
     this.setState({
       isShowModal: true,
-      photoForModal: { largeImageURL: urlForModal, title: title },
+      photoForModal: { largeImageURL: urlForModal, title: title, id: id },
     });
 
     // console.log(urlForModal, title);
@@ -44,12 +53,12 @@ export class App extends Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
-    if (
-      this.state.searchText !== prevState.searchText ||
-      this.state.page !== prevState.page ||
-      this.state.query !== prevState.query
-    ) {
-      getPhotos(this.state.searchText, this.state.page)
+    const { searchText, page, photosOnPage, error } = this.state;
+
+    if (searchText !== prevState.searchText || page !== prevState.page) {
+      this.setState({ status: STATUS.PENDING });
+
+      getPhotos(searchText, page)
         .then(response => {
           if (!response.ok) {
             throw new Error(response.status);
@@ -57,34 +66,59 @@ export class App extends Component {
           return response.json();
         })
         .then(data => {
-          if (this.state.page !== prevState.page) {
-            this.setState(prevState => ({
-              query: [...prevState.query, ...data.hits],
-            }));
-          } else {
-            return this.setState({ query: data.hits });
+          if (data.totalHits === 0) {
+            return this.setState({
+              error: 'No matches found',
+              status: STATUS.REJECTED,
+            });
           }
 
-          // console.log(data);
+          if (page * photosOnPage < data.totalHits) {
+            this.setState({ isShowButton: true });
+          } else {
+            this.setState({ isShowButton: false });
+          }
+
+          this.setState(prevState => ({
+            query: [...prevState.query, ...data.hits],
+            status: STATUS.RESOLVED,
+          }));
+
+          console.log(data);
         })
         .catch(error => {
-          this.setState({ error });
+          this.setState({ error, status: STATUS.REJECTED });
         });
     }
   }
 
   render() {
-    const { query, isShowModal, photoForModal, isShowLoader } = this.state;
-    return (
-      <>
-        <Searchbar onSearch={this.handleSearch} />
-        <ImageGallery gallery={query} onClick={this.openModal} />
-        {isShowLoader && <Loader />}
-        <Button onClick={this.handleButton} />
-        {isShowModal && (
-          <Modal onClick={this.closeModal} modalContent={photoForModal} />
-        )}
-      </>
-    );
+    const { query, isShowModal, isShowButton, photoForModal, status, error } =
+      this.state;
+
+    if (status === STATUS.IDLE) {
+      return <Searchbar onSearch={this.handleSearch} />;
+    }
+
+    if (status === STATUS.PENDING) {
+      return <Loader />;
+    }
+
+    if (status === STATUS.RESOLVED) {
+      return (
+        <>
+          <Searchbar onSearch={this.handleSearch} />
+          <ImageGallery gallery={query} onClick={this.openModal} />
+          {isShowButton && <Button onClick={this.handleButton} />}
+          {isShowModal && (
+            <Modal onClick={this.closeModal} modalContent={photoForModal} />
+          )}
+        </>
+      );
+    }
+
+    if (status === STATUS.REJECTED) {
+      return <h1>{error}</h1>;
+    }
   }
 }

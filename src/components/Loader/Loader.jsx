@@ -1,13 +1,14 @@
+import React from 'react';
 import { FidgetSpinner } from 'react-loader-spinner';
 
 export function Loader() {
   return (
     <FidgetSpinner
       visible={true}
-      height="80"
-      width="80"
+      height="100"
+      width="100"
       ariaLabel="dna-loading"
-      wrapperStyle={{}}
+      wrapperStyle={{ marginLeft: 100, marginTop: 100 }}
       wrapperClass="dna-wrapper"
       ballColors={['#ff0000', '#00ff00', '#0000ff']}
       backgroundColor="#F4442E"

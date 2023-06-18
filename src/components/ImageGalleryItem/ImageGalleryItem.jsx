@@ -12,7 +12,7 @@ export default function ImageGalleryItem({
     <li
       key={id}
       className={css.ImageGalleryItem}
-      onClick={() => onClick(urlForModal, title)}
+      onClick={() => onClick(urlForModal, title, id)}
     >
       <img className={css.ImageGalleryItemImage} src={url} alt={title} />
     </li>
