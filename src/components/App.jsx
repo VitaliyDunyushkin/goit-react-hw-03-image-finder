@@ -49,7 +49,7 @@ export class App extends Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { searchText, page, photosOnPage, error } = this.state;
+    const { searchText, page, photosOnPage } = this.state;
 
     if (searchText !== prevState.searchText || page !== prevState.page) {
       this.setState({ status: STATUS.PENDING });
@@ -79,8 +79,6 @@ export class App extends Component {
             query: [...prevState.query, ...data.hits],
             status: STATUS.RESOLVED,
           }));
-
-          console.log(data);
         })
         .catch(error => {
           this.setState({ error, status: STATUS.REJECTED });
