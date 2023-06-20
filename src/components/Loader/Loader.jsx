@@ -8,7 +8,7 @@ export function Loader() {
       height="100"
       width="100"
       ariaLabel="dna-loading"
-      wrapperStyle={{ marginLeft: 100, marginTop: 100 }}
+      wrapperStyle={{ marginLeft: '40vw' }}
       wrapperClass="dna-wrapper"
       ballColors={['#ff0000', '#00ff00', '#0000ff']}
       backgroundColor="#F4442E"

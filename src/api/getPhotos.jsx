@@ -8,4 +8,9 @@ const searchParams = new URLSearchParams({
 });
 
 export const getPhotos = (searchText, page) =>
-  fetch(`${URL}q=${searchText}&page=${page}&${searchParams}`);
+  fetch(`${URL}q=${searchText}&page=${page}&${searchParams}`).then(response => {
+    if (!response.ok) {
+      throw new Error(response.status);
+    }
+    return response.json();
+  });

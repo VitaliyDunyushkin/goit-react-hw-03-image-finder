@@ -28,10 +28,18 @@ export class App extends Component {
   };
 
   handleSearch = value => {
-    this.setState({ searchText: value, page: 1, query: [] });
+    this.setState({
+      searchText: value,
+      query: [],
+      page: 1,
+      error: '',
+      isShowModal: false,
+      isShowButton: false,
+      photoForModal: { largeImageURL: '', title: '', id: '' },
+    });
   };
 
-  handleButton = () => {
+  handleButton = id => {
     this.setState(prevState => ({
       page: prevState.page + 1,
     }));
@@ -45,46 +53,47 @@ export class App extends Component {
   };
 
   closeModal = () => {
-    this.setState({ isShowModal: false });
+    this.setState({
+      isShowModal: false,
+      photoForModal: { largeImageURL: '', title: '', id: '' },
+    });
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { searchText, page, photosOnPage } = this.state;
+    const { searchText, page } = this.state;
 
     if (searchText !== prevState.searchText || page !== prevState.page) {
       this.setState({ status: STATUS.PENDING });
-
-      getPhotos(searchText, page)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(response.status);
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.totalHits === 0) {
-            return this.setState({
-              error: 'No matches found',
-              status: STATUS.REJECTED,
-            });
-          }
-
-          if (page * photosOnPage < data.totalHits) {
-            this.setState({ isShowButton: true });
-          } else {
-            this.setState({ isShowButton: false });
-          }
-
-          this.setState(prevState => ({
-            query: [...prevState.query, ...data.hits],
-            status: STATUS.RESOLVED,
-          }));
-        })
-        .catch(error => {
-          this.setState({ error, status: STATUS.REJECTED });
-        });
+      this.fetchPhotos();
     }
   }
+
+  fetchPhotos = async () => {
+    const { searchText, page, photosOnPage } = this.state;
+    await getPhotos(searchText, page)
+      .then(data => {
+        if (data.totalHits === 0) {
+          return this.setState({
+            error: 'No matches found',
+            status: STATUS.REJECTED,
+          });
+        }
+
+        if (page * photosOnPage < data.totalHits) {
+          this.setState({ isShowButton: true });
+        } else {
+          this.setState({ isShowButton: false });
+        }
+
+        this.setState(prevState => ({
+          query: [...prevState.query, ...data.hits],
+          status: STATUS.RESOLVED,
+        }));
+      })
+      .catch(error => {
+        this.setState({ error, status: STATUS.REJECTED });
+      });
+  };
 
   render() {
     const { query, isShowModal, isShowButton, photoForModal, status, error } =
@@ -95,7 +104,13 @@ export class App extends Component {
     }
 
     if (status === STATUS.PENDING) {
-      return <Loader />;
+      return (
+        <>
+          <Searchbar onSearch={this.handleSearch} />
+          <ImageGallery gallery={query} onClick={this.openModal} />
+          <Loader />;
+        </>
+      );
     }
 
     if (status === STATUS.RESOLVED) {
@@ -103,7 +118,7 @@ export class App extends Component {
         <>
           <Searchbar onSearch={this.handleSearch} />
           <ImageGallery gallery={query} onClick={this.openModal} />
-          {isShowButton && <Button onClick={this.handleButton} />}
+          {isShowButton && <Button handleButton={this.handleButton} />}
           {isShowModal && (
             <Modal onClick={this.closeModal} modalContent={photoForModal} />
           )}
